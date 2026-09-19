@@ -923,27 +923,36 @@ unusualBtn.addEventListener(
     "click",
     () => {
 
+        const alreadyUnusual =
+            getUnusualData()?.active;
+
+        if (alreadyUnusual) {
+
+            // Undo unusual day
+            localStorage.removeItem(
+                "timetable-unusual-" + weekKey
+            );
+
+            location.reload();
+
+            return;
+        }
+
+        // Activate unusual day
         activateUnusualDay();
 
-
         localStorage.setItem(
-
-            "timetable-unusual-" +
-            weekKey,
-
+            "timetable-unusual-" + weekKey,
             JSON.stringify({
-
                 active: true,
-
                 reason: null
-
             })
-
         );
 
+        unusualBtn.textContent =
+            "Sorry a cat was on my keyboard";
     }
 );
-
 
 /* =========================================
    CHOOSE REASON
