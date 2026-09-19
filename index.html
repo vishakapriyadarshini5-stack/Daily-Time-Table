@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -588,11 +589,14 @@ let selectedSlot = null;
    SRI LANKAN DATE
 ========================================= */
 
-const today = new Date(
-    new Date().toLocaleString("en-US", {
-        timeZone: "Asia/Colombo"
-    })
-);
+const sriLankaDate = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Colombo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+}).format(new Date());
+
+const today = new Date(sriLankaDate + "T12:00:00");
 
 
 /* =========================================
