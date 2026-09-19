@@ -167,6 +167,8 @@
         font-size: 12px;
         cursor: pointer;
         transition: 0.2s;
+        position: relative;
+        z-index: 5;
     }
 
     .event:hover {
@@ -178,6 +180,23 @@
         color: #9b9fa8;
         font-size: 10px;
         margin-top: 3px;
+    }
+
+    .delete-event {
+        margin-top: 7px;
+        border: none;
+        background: rgba(255,255,255,0.08);
+        color: #aaa;
+        padding: 5px 9px;
+        border-radius: 999px;
+        font-size: 10px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .delete-event:hover {
+        background: rgba(255,255,255,0.16);
+        color: white;
     }
 
     .add {
@@ -263,7 +282,7 @@
         transform: rotate(65deg);
     }
 
-    /* PANEL */
+    /* UNUSUAL PANEL */
 
     .unusual-panel {
         display: none;
@@ -285,6 +304,7 @@
             opacity: 0;
             transform: translateY(10px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
@@ -396,6 +416,7 @@
     }
 
     @media(max-width: 700px) {
+
         .page {
             padding: 15px;
         }
@@ -421,6 +442,7 @@
 <div class="page">
 
     <header>
+
         <div class="title-area">
             <h1>Timetable</h1>
             <p id="weekLabel"></p>
@@ -429,17 +451,25 @@
         <button class="unusual-btn" id="unusualBtn">
             Unusual day
         </button>
+
     </header>
 
+
     <div class="calendar-wrapper">
+
         <div class="calendar" id="calendar"></div>
+
     </div>
 
+
     <div class="unusual-panel" id="unusualPanel">
+
         <h2>Today is different ✦</h2>
+
         <p>What changed today?</p>
 
         <div class="choices">
+
             <button class="choice" data-reason="Family / cousin">
                 👨‍👩‍👧 Family / cousin
             </button>
@@ -451,34 +481,73 @@
             <button class="choice" data-reason="Something else">
                 ✦ Something else
             </button>
+
         </div>
 
         <div class="selected-message" id="selectedMessage"></div>
+
     </div>
 
 </div>
+
 
 <!-- ADD EVENT MODAL -->
 
 <div class="modal" id="eventModal">
+
     <div class="modal-box">
+
         <h2>Add event</h2>
 
-        <input id="eventName" placeholder="Event name">
+        <input
+            id="eventName"
+            placeholder="Event name"
+        >
 
         <div class="modal-actions">
-            <button class="cancel" id="cancelModal">Cancel</button>
-            <button class="save" id="saveEvent">Add</button>
+
+            <button
+                class="cancel"
+                id="cancelModal"
+            >
+                Cancel
+            </button>
+
+            <button
+                class="save"
+                id="saveEvent"
+            >
+                Add
+            </button>
+
         </div>
+
     </div>
+
 </div>
+
 
 <script>
 
+/* =========================================
+   BASIC SETTINGS
+========================================= */
+
 const calendar = document.getElementById("calendar");
-const unusualBtn = document.getElementById("unusualBtn");
-const unusualPanel = document.getElementById("unusualPanel");
-const selectedMessage = document.getElementById("selectedMessage");
+
+const unusualBtn =
+    document.getElementById("unusualBtn");
+
+const unusualPanel =
+    document.getElementById("unusualPanel");
+
+const selectedMessage =
+    document.getElementById("selectedMessage");
+
+
+/* =========================================
+   DAYS & TIMES
+========================================= */
 
 const days = [
     "Monday",
@@ -490,10 +559,13 @@ const days = [
     "Sunday"
 ];
 
+
+/*
+   Sri Lankan timetable:
+   11 AM → 10 PM
+*/
+
 const times = [
-    "08:00",
-    "09:00",
-    "10:00",
     "11:00",
     "12:00",
     "1:00",
@@ -505,310 +577,600 @@ const times = [
     "7:00",
     "8:00",
     "9:00",
-    "10:00",
-    "11:00"
+    "10:00"
 ];
+
 
 let selectedSlot = null;
 
-/* -----------------------------
-   DATE HELPERS
------------------------------ */
 
-function getMonday(date) {
-    const d = new Date(date);
-    const day = d.getDay();
+/* =========================================
+   SRI LANKAN DATE
+========================================= */
 
-    const difference = day === 0 ? -6 : 1 - day;
-
-    d.setDate(d.getDate() + difference);
-    d.setHours(0, 0, 0, 0);
-
-    return d;
-}
-
-function dateKey(date) {
-    return date.toISOString().split("T")[0];
-}
-
-const nowSriLanka = new Date(
+const today = new Date(
     new Date().toLocaleString("en-US", {
         timeZone: "Asia/Colombo"
     })
 );
 
-const today = nowSriLanka;
-const monday = getMonday(today);
-const weekKey = dateKey(monday);
 
-/* -----------------------------
-   WEEK LABEL
------------------------------ */
+/* =========================================
+   GET MONDAY
+========================================= */
 
-function formatDate(date) {
-    return date.toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric"
-    });
+function getMonday(date) {
+
+    const d = new Date(date);
+
+    const day = d.getDay();
+
+    const difference =
+        day === 0 ? -6 : 1 - day;
+
+    d.setDate(
+        d.getDate() + difference
+    );
+
+    d.setHours(0, 0, 0, 0);
+
+    return d;
 }
 
-const sunday = new Date(monday);
-sunday.setDate(monday.getDate() + 6);
 
-document.getElementById("weekLabel").textContent =
+const monday = getMonday(today);
+
+
+/* =========================================
+   DATE KEY
+========================================= */
+
+function dateKey(date) {
+
+    return date.toISOString()
+        .split("T")[0];
+
+}
+
+
+const weekKey = dateKey(monday);
+
+
+/* =========================================
+   FORMAT DATES
+========================================= */
+
+function formatDate(date) {
+
+    return date.toLocaleDateString(
+        "en-US",
+        {
+            month: "short",
+            day: "numeric"
+        }
+    );
+
+}
+
+
+const sunday = new Date(monday);
+
+sunday.setDate(
+    monday.getDate() + 6
+);
+
+
+document.getElementById("weekLabel")
+    .textContent =
     `${formatDate(monday)} – ${formatDate(sunday)}`;
 
 
-/* -----------------------------
+/* =========================================
    BUILD CALENDAR
------------------------------ */
+========================================= */
 
 function buildCalendar() {
 
     calendar.innerHTML = "";
 
-    /* empty top-left corner */
-    const empty = document.createElement("div");
-    empty.className = "time-header";
+
+    /* TOP LEFT */
+
+    const empty =
+        document.createElement("div");
+
+    empty.className =
+        "time-header";
+
     calendar.appendChild(empty);
+
 
     /* DAY HEADERS */
 
     days.forEach((day, index) => {
 
-        const header = document.createElement("div");
-        header.className = "day-header";
+        const header =
+            document.createElement("div");
 
-        const date = new Date(monday);
-        date.setDate(monday.getDate() + index);
+        header.className =
+            "day-header";
+
+
+        const date =
+            new Date(monday);
+
+        date.setDate(
+            monday.getDate() + index
+        );
+
 
         const isToday =
-            dateKey(date) === dateKey(today);
+            dateKey(date) ===
+            dateKey(today);
+
 
         if (isToday) {
-            header.classList.add("today-header");
+
+            header.classList.add(
+                "today-header"
+            );
+
         }
 
+
         header.innerHTML = `
-            <div class="day-name">${day}</div>
-            <div class="day-number">${date.getDate()}</div>
+            <div class="day-name">
+                ${day}
+            </div>
+
+            <div class="day-number">
+                ${date.getDate()}
+            </div>
         `;
 
-        header.dataset.dayIndex = index;
+
+        header.dataset.dayIndex =
+            index;
+
 
         calendar.appendChild(header);
+
     });
 
 
     /* TIME ROWS */
 
-    times.forEach((time, timeIndex) => {
+    times.forEach(
+        (time, timeIndex) => {
 
-        const timeCell = document.createElement("div");
-        timeCell.className = "time";
-        timeCell.textContent = time;
+        const timeCell =
+            document.createElement("div");
 
-        calendar.appendChild(timeCell);
+        timeCell.className =
+            "time";
 
-        days.forEach((day, dayIndex) => {
+        timeCell.textContent =
+            time;
 
-            const slot = document.createElement("div");
-            slot.className = "slot";
 
-            const date = new Date(monday);
-            date.setDate(monday.getDate() + dayIndex);
+        calendar.appendChild(
+            timeCell
+        );
 
-            if (dateKey(date) === dateKey(today)) {
-                slot.classList.add("today-column");
+
+        days.forEach(
+            (day, dayIndex) => {
+
+            const slot =
+                document.createElement("div");
+
+            slot.className =
+                "slot";
+
+
+            const date =
+                new Date(monday);
+
+            date.setDate(
+                monday.getDate() + dayIndex
+            );
+
+
+            if (
+                dateKey(date) ===
+                dateKey(today)
+            ) {
+
+                slot.classList.add(
+                    "today-column"
+                );
+
             }
 
-            slot.dataset.dayIndex = dayIndex;
-            slot.dataset.time = time;
 
-            const add = document.createElement("button");
-            add.className = "add";
-            add.textContent = "+";
+            slot.dataset.dayIndex =
+                dayIndex;
 
-            add.onclick = () => openEventModal(slot);
+            slot.dataset.time =
+                time;
+
+
+            const add =
+                document.createElement("button");
+
+            add.className =
+                "add";
+
+            add.textContent =
+                "+";
+
+
+            add.onclick = () =>
+                openEventModal(slot);
+
 
             slot.appendChild(add);
 
+
             calendar.appendChild(slot);
+
         });
+
     });
 
+
     restoreUnusualDay();
+
 }
 
 
-/* -----------------------------
-   UNUSUAL DAY
------------------------------ */
+/* =========================================
+   UNUSUAL DAY STORAGE
+========================================= */
 
 function getUnusualData() {
+
     return JSON.parse(
-        localStorage.getItem("timetable-unusual-" + weekKey) || "null"
+        localStorage.getItem(
+            "timetable-unusual-" +
+            weekKey
+        ) || "null"
     );
+
 }
 
 
-function activateUnusualDay(reason = null) {
+/* =========================================
+   ACTIVATE UNUSUAL DAY
+========================================= */
+
+function activateUnusualDay(
+    reason = null
+) {
 
     const todaySlots =
-        document.querySelectorAll(".today-column");
+        document.querySelectorAll(
+            ".today-column"
+        );
+
 
     todaySlots.forEach(slot => {
 
-        if (!slot.querySelector(".crack")) {
+        if (
+            !slot.querySelector(
+                ".crack"
+            )
+        ) {
 
-            for (let i = 1; i <= 4; i++) {
+            const crackNames = [
+                "one",
+                "two",
+                "three",
+                "four"
+            ];
 
-                const crack = document.createElement("div");
-                crack.className = `crack ${["one","two","three","four"][i-1]}`;
 
-                slot.appendChild(crack);
-            }
+            crackNames.forEach(name => {
+
+                const crack =
+                    document.createElement(
+                        "div"
+                    );
+
+                crack.className =
+                    `crack ${name}`;
+
+                slot.appendChild(
+                    crack
+                );
+
+            });
+
         }
 
-        slot.classList.add("cracked");
+
+        slot.classList.add(
+            "cracked"
+        );
+
     });
 
-    unusualPanel.classList.add("show");
+
+    unusualPanel.classList.add(
+        "show"
+    );
+
 
     if (reason) {
+
         showReason(reason);
+
     }
+
 }
 
 
-unusualBtn.addEventListener("click", () => {
+/* =========================================
+   UNUSUAL BUTTON
+========================================= */
 
-    activateUnusualDay();
+unusualBtn.addEventListener(
+    "click",
+    () => {
 
-    localStorage.setItem(
-        "timetable-unusual-" + weekKey,
-        JSON.stringify({
-            active: true,
-            reason: null
-        })
-    );
-});
+        activateUnusualDay();
 
-
-/* -----------------------------
-   CHOOSE REASON
------------------------------ */
-
-document.querySelectorAll(".choice").forEach(button => {
-
-    button.addEventListener("click", () => {
-
-        const reason = button.dataset.reason;
 
         localStorage.setItem(
-            "timetable-unusual-" + weekKey,
+
+            "timetable-unusual-" +
+            weekKey,
+
             JSON.stringify({
+
                 active: true,
-                reason: reason
+
+                reason: null
+
             })
+
         );
 
-        showReason(reason);
-    });
+    }
+);
+
+
+/* =========================================
+   CHOOSE REASON
+========================================= */
+
+document
+.querySelectorAll(".choice")
+.forEach(button => {
+
+    button.addEventListener(
+        "click",
+        () => {
+
+            const reason =
+                button.dataset.reason;
+
+
+            localStorage.setItem(
+
+                "timetable-unusual-" +
+                weekKey,
+
+                JSON.stringify({
+
+                    active: true,
+
+                    reason: reason
+
+                })
+
+            );
+
+
+            showReason(reason);
+
+        }
+    );
 
 });
 
 
 function showReason(reason) {
 
-    selectedMessage.style.display = "block";
+    selectedMessage.style.display =
+        "block";
+
 
     selectedMessage.textContent =
         `Today marked as: ${reason}`;
+
 }
 
 
-/* -----------------------------
-   RESTORE AFTER REFRESH
------------------------------ */
+/* =========================================
+   RESTORE UNUSUAL DAY
+========================================= */
 
 function restoreUnusualDay() {
 
-    const data = getUnusualData();
+    const data =
+        getUnusualData();
 
-    if (!data || !data.active) {
+
+    if (
+        !data ||
+        !data.active
+    ) {
+
         return;
+
     }
 
-    activateUnusualDay(data.reason);
+
+    activateUnusualDay(
+        data.reason
+    );
+
 }
 
 
-/* -----------------------------
-   ADD EVENTS
------------------------------ */
+/* =========================================
+   EVENT MODAL
+========================================= */
 
-const modal = document.getElementById("eventModal");
-const eventName = document.getElementById("eventName");
+const modal =
+    document.getElementById(
+        "eventModal"
+    );
+
+
+const eventName =
+    document.getElementById(
+        "eventName"
+    );
+
 
 function openEventModal(slot) {
 
-    selectedSlot = slot;
+    selectedSlot =
+        slot;
+
 
     eventName.value = "";
 
-    modal.classList.add("show");
 
-    setTimeout(() => {
-        eventName.focus();
-    }, 50);
+    modal.classList.add(
+        "show"
+    );
+
+
+    setTimeout(
+        () => eventName.focus(),
+        50
+    );
+
 }
 
 
-document.getElementById("cancelModal").onclick = () => {
-    modal.classList.remove("show");
+/* =========================================
+   CANCEL EVENT
+========================================= */
+
+document.getElementById(
+    "cancelModal"
+).onclick = () => {
+
+    modal.classList.remove(
+        "show"
+    );
+
 };
 
 
-document.getElementById("saveEvent").onclick = () => {
+/* =========================================
+   SAVE EVENT
+========================================= */
 
-    const name = eventName.value.trim();
+document.getElementById(
+    "saveEvent"
+).onclick = () => {
 
-    if (!name || !selectedSlot) {
+    const name =
+        eventName.value.trim();
+
+
+    if (
+        !name ||
+        !selectedSlot
+    ) {
+
         return;
+
     }
 
-    const event = document.createElement("div");
-    event.className = "event";
+
+    const event =
+        document.createElement("div");
+
+    event.className =
+        "event";
+
 
     event.innerHTML = `
-        <strong>${escapeHTML(name)}</strong>
+
+        <strong>
+            ${escapeHTML(name)}
+        </strong>
+
         <div class="event-time">
             ${selectedSlot.dataset.time}
         </div>
+
+        <button class="delete-event">
+            Delete
+        </button>
+
     `;
 
+
+    /* DELETE BUTTON */
+
+    event
+        .querySelector(
+            ".delete-event"
+        )
+        .onclick = (e) => {
+
+            e.stopPropagation();
+
+            event.remove();
+
+        };
+
+
     selectedSlot.insertBefore(
+
         event,
-        selectedSlot.querySelector(".add")
+
+        selectedSlot.querySelector(
+            ".add"
+        )
+
     );
 
-    modal.classList.remove("show");
+
+    modal.classList.remove(
+        "show"
+    );
+
 };
 
 
+/* =========================================
+   ESCAPE HTML
+========================================= */
+
 function escapeHTML(text) {
 
-    const div = document.createElement("div");
-    div.textContent = text;
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        text;
 
     return div.innerHTML;
+
 }
 
 
-/* -----------------------------
+/* =========================================
    START
------------------------------ */
+========================================= */
 
 buildCalendar();
 
